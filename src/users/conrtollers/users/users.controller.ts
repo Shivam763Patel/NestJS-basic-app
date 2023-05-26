@@ -1,13 +1,12 @@
 import { Body, Controller, Get, HttpException, HttpStatus, Param, ParseIntPipe, Post, Query, Req, Res, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { request } from 'http';
 import { CraeteUserDto } from 'src/users/dtos/CreateUser.dto';
 import { UsersService } from 'src/users/services/users/users.service';
 
 @Controller('users')
 export class UsersController {
 
-    //Inject Dependency  
+    //Dependency  Injectation
 
     constructor(private userService: UsersService)
     {
@@ -85,6 +84,8 @@ createUser(@Req() request: Request, @Res() response: Response)
 newCreateUser(@Body() userData: CraeteUserDto)
 {
     console.log('Req body data', userData);
+
+    console.log('user age is', userData.age.toPrecision)
     return userData
 }
 
@@ -127,7 +128,7 @@ getUsersByQuery(@Query('sortBy') sortBy: String)
 @Get('posts/dataNew')
 getUsersByQueryDetails()
 {
-    console.log("User data by query is: ", )
+    console.log("User data by query is: ", this.userService.fetchUsers())
     return this.userService.fetchUsers();
 }
 

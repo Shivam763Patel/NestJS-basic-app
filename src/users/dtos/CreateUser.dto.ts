@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty } from "class-validator"
+import { IsEmail, IsNotEmpty, IsNumber } from "class-validator"
 
 export class CraeteUserDto{
     @IsNotEmpty()
@@ -8,4 +8,8 @@ export class CraeteUserDto{
     @IsEmail()
     @IsNotEmpty()
     email: string
+
+    @IsNotEmpty()
+    @IsNumber()
+    age: number;
 }
