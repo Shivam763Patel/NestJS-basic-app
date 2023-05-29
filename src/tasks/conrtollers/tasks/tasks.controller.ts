@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, NotFoundException, Param, ParseIntPipe, Patch, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CraeteTaskDto } from 'src/tasks/dtos/CreateTask.dto';
 import { GetTaskFilterDto } from 'src/tasks/dtos/get-tasks-filter.dto';
 import { Task, TaskStatus } from 'src/tasks/models/task.model';
+import { TaskStatusValidation } from 'src/tasks/pipes/task-status-validation.pipe';
 import { TasksService } from 'src/tasks/services/tasks/tasks.service';
 
 @Controller('tasks')
@@ -13,7 +14,7 @@ export class TasksController {
     }
 
     @Get('data')
-    getTasks(@Query() filterDto: GetTaskFilterDto): Task[]
+    getTasks(@Query(ValidationPipe) filterDto: GetTaskFilterDto): Task[]
     {   
         if(Object.keys(filterDto).length)
         {
@@ -29,10 +30,8 @@ export class TasksController {
     }
 
     @Post('/add')
-    @UsePipes(new ValidationPipe())
-    createTask(
-
-        @Body() CraeteTaskDto: CraeteTaskDto
+    @UsePipes(ValidationPipe)
+    createTask( @Body() CraeteTaskDto: CraeteTaskDto
         // @Body('id') id: string,
         // @Body('title') title: string,
         // @Body('caption') caption: string,
@@ -41,23 +40,44 @@ export class TasksController {
             return this.tasksService.createTask(CraeteTaskDto)
         }
 
-    @Get('new/:id')
+    @Get('data/:id')
     getTaskById(@Param('id') id: string): Task
     {
-        return this.tasksService.getTaskById(id)
+     
+        const found = this.tasksService.getTaskById(id)
+
+        if(!found)
+        {
+            console.log("task with id ",id)
+            throw new NotFoundException(`Task with ID "${ id }" is not found`);
+
+        }
+
+        return found
     }
 
     @Delete('delete/:id')
-    deleteTask(@Param('id') id:string): void
+    deleteTask(@Param('id') id: string)
     {
-        this.tasksService.deleteTask(id)
+        console.log("User delete task data",id)
+
+        const newdata = this.tasksService.deleteTask(id)
+        console.log("Task data one",newdata)
+
+        if(!newdata)
+        
+        {
+            throw new HttpException('Task not found', HttpStatus.BAD_REQUEST)  
+        }
+
+        return newdata
     }
 
     //Update task
     @Patch('update/status/:id')
     updateTaskStatus(
         @Param('id') id: string,
-        @Body('status') status: TaskStatus
+        @Body('status', TaskStatusValidation) status: TaskStatus
 
     )
     {
